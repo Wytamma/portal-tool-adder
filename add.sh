@@ -57,11 +57,8 @@ EXISTING_TOOL=$(curl -X 'GET' \
     -H 'accept: application/json'   \
     -H "Authorization: Bearer ${API_TOKEN}")
 
-EXISTING_TOOL_ID=$(echo $EXISTING_TOOL | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-TOOL_INSTALLED_STATUS=$(echo $EXISTING_TOOL | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-
-# if EXISTING_TOOL_ID is empty, then tool does not exist add it
-if [ -z "$EXISTING_TOOL_ID" ]; then
+# Check if tool exists by looking for "Tool not found" in response
+if echo "$EXISTING_TOOL" | grep -q "Tool not found"; then
     log "Tool does not exist, adding '${TOOL_NAME}'"
     EXISTING_TOOL=$(curl -X 'POST' \
     "${API_URL}/tools/" \
@@ -73,6 +70,8 @@ if [ -z "$EXISTING_TOOL_ID" ]; then
     TOOL_INSTALLED_STATUS=$(echo $EXISTING_TOOL | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
     log "Tool successfully added with ID: ${EXISTING_TOOL_ID}"
 else
+    EXISTING_TOOL_ID=$(echo $EXISTING_TOOL | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+    TOOL_INSTALLED_STATUS=$(echo $EXISTING_TOOL | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
     log "Tool '${TOOL_NAME}' already exists with ID: ${EXISTING_TOOL_ID}"
 fi
 
